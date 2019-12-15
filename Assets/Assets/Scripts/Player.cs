@@ -23,6 +23,17 @@ public class Player : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        Movement();
+        CheckGrounded();
+
+
+
+
+
+    }
+
+    void Movement()
+    {
         // horizontal input
         float move = Input.GetAxisRaw("Horizontal");
         // current velocity = new velocity 9x, current y';
@@ -39,6 +50,11 @@ public class Player : MonoBehaviour
 
         }
 
+        _rigid.velocity = new Vector2(move, _rigid.velocity.y);
+    }
+
+    void CheckGrounded()
+    {
         RaycastHit2D hitInfo = Physics2D.Raycast(transform.position + new Vector3(0, transform.position.y + 0.5f, 0), Vector2.down, 0.6f, 1 << 8);
         Debug.DrawRay(transform.position + new Vector3(0, transform.position.y + 0.5f, 0), Vector2.down * 0.6f, Color.green);
 
@@ -51,11 +67,8 @@ public class Player : MonoBehaviour
             {
                 _grounded = true;
             }
-            
+
         }
-
-        _rigid.velocity = new Vector2(move, _rigid.velocity.y);
-
     }
 
     public IEnumerator ResetJumpNeededRoutine()
