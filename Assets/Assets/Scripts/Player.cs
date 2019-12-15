@@ -7,6 +7,12 @@ public class Player : MonoBehaviour
     // get reference to rigidbody
     private Rigidbody2D _rigid;
 
+    [SerializeField]
+    private float _jumpforce = 5.0f;
+    [SerializeField]
+    private bool _grounded = false;
+    private bool _resetJumpNeeded = false;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -18,10 +24,44 @@ public class Player : MonoBehaviour
     void Update()
     {
         // horizontal input
-        float horizzontalInput = Input.GetAxis("Horizontal");
+        float move = Input.GetAxisRaw("Horizontal");
         // current velocity = new velocity 9x, current y';
 
-        _rigid.velocity = new Vector2(horizzontalInput, _rigid.velocity.y);
+        // space key && grounded , jump
+        if (Input.GetKeyDown(KeyCode.Space) && _grounded == true)
+        {
+            _rigid.velocity = new Vector2(_rigid.velocity.x, _jumpforce);
+            _grounded = false;
+            _resetJumpNeeded = true;
+            Debug.Log("Before routine");
+            StartCoroutine("ResetJumpNeededRoutine");
+            Debug.Log("after routine");
 
+        }
+
+        RaycastHit2D hitInfo = Physics2D.Raycast(transform.position + new Vector3(0, transform.position.y + 0.5f, 0), Vector2.down, 0.6f, 1 << 8);
+        Debug.DrawRay(transform.position + new Vector3(0, transform.position.y + 0.5f, 0), Vector2.down * 0.6f, Color.green);
+
+        if (hitInfo.collider != null)
+        {
+            Debug.Log("Hit: " + hitInfo.collider.name);
+            Debug.Log("_resetJumpNeeded: " + _resetJumpNeeded);
+
+            if (_resetJumpNeeded == false)
+            {
+                _grounded = true;
+            }
+            
+        }
+
+        _rigid.velocity = new Vector2(move, _rigid.velocity.y);
+
+    }
+
+    public IEnumerator ResetJumpNeededRoutine()
+    {
+        Debug.Log("Routine called");
+        yield return new WaitForSeconds(0.1f);
+        _resetJumpNeeded = false;
     }
 }
