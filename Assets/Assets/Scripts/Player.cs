@@ -12,12 +12,19 @@ public class Player : MonoBehaviour
     [SerializeField]
     private bool _grounded = false;
     private bool _resetJumpNeeded = false;
+    [SerializeField]
+    private float _speed = 5.0f;
+
+    private PlayerAnimation _playerAnim;
+    private SpriteRenderer _playerSprite;
 
     // Start is called before the first frame update
     void Start()
     {
         //assign handle of rigidbody
         _rigid = GetComponent<Rigidbody2D>();
+        _playerAnim = GetComponent<PlayerAnimation>();
+        _playerSprite = GetComponentInChildren<SpriteRenderer>();
     }
 
     // Update is called once per frame
@@ -26,10 +33,6 @@ public class Player : MonoBehaviour
         Movement();
         CheckGrounded();
 
-
-
-
-
     }
 
     void Movement()
@@ -37,6 +40,7 @@ public class Player : MonoBehaviour
         // horizontal input
         float move = Input.GetAxisRaw("Horizontal");
         // current velocity = new velocity 9x, current y';
+        Flip(move);
 
         // space key && grounded , jump
         if (Input.GetKeyDown(KeyCode.Space) && _grounded == true)
@@ -44,24 +48,22 @@ public class Player : MonoBehaviour
             _rigid.velocity = new Vector2(_rigid.velocity.x, _jumpforce);
             _grounded = false;
             _resetJumpNeeded = true;
-            Debug.Log("Before routine");
             StartCoroutine("ResetJumpNeededRoutine");
-            Debug.Log("after routine");
 
         }
 
-        _rigid.velocity = new Vector2(move, _rigid.velocity.y);
+        _rigid.velocity = new Vector2(move * _speed, _rigid.velocity.y);
+
+        _playerAnim.Move(move);
     }
 
     void CheckGrounded()
     {
-        RaycastHit2D hitInfo = Physics2D.Raycast(transform.position + new Vector3(0, transform.position.y + 0.5f, 0), Vector2.down, 0.6f, 1 << 8);
-        Debug.DrawRay(transform.position + new Vector3(0, transform.position.y + 0.5f, 0), Vector2.down * 0.6f, Color.green);
+        RaycastHit2D hitInfo = Physics2D.Raycast(transform.position, Vector2.down, 0.1f, 1 << 8);
+        Debug.DrawRay(transform.position, Vector2.down * 0.1f, Color.green);
 
         if (hitInfo.collider != null)
         {
-            Debug.Log("Hit: " + hitInfo.collider.name);
-            Debug.Log("_resetJumpNeeded: " + _resetJumpNeeded);
 
             if (_resetJumpNeeded == false)
             {
@@ -71,9 +73,17 @@ public class Player : MonoBehaviour
         }
     }
 
+    void Flip(float move){
+        if(move > 0 ){
+            _playerSprite.flipX = false;
+
+        } else if (move < 0) {
+            _playerSprite.flipX = true;
+        }
+    }
+
     public IEnumerator ResetJumpNeededRoutine()
     {
-        Debug.Log("Routine called");
         yield return new WaitForSeconds(0.1f);
         _resetJumpNeeded = false;
     }
